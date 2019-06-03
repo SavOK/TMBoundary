@@ -3,18 +3,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 import sys
 
-import psycopg2
-import psycopg2.extras
-
-conn_param_dict = {
-        "dbname":"ecod", 
-        "user":"ecodweb", 
-        "host":"129.112.32.63", 
-        "port":"45000", 
-        "password":"serveruse421",
-        }
 
 from TMBoundrary import XMLParser
+from TMBoundrary import RowSQL
 
 def _check_inputFile(option, opt_str, value, parser):
     f_path = Path(value)
@@ -23,14 +14,6 @@ def _check_inputFile(option, opt_str, value, parser):
     setattr(parser.values, option.dest, Path(value))
     parser.values.saved_infile = True
 
-
-def get_domain_row(domain_id:str, c):
-    c.execute('SELECT * FROM domain where id=%s', (domain_id,))
-    results = c.fetchone()
-    if results is None:
-        print(f"cannot find {domain_id}")
-    res_dict = {k:v for k,v in results.items()}
-    return res_dict
 
 
 def get_path_to_domain(domain_uid:str, domain_root:Path=None):
@@ -57,13 +40,11 @@ if options.input_xml_filepath is None:
     sys.exit()
 
 XML_Info = XMLParser(options.input_xml_filepath)
-test = XML_Info.hh_run['hits'][5]['domain_id']
+test1 = XML_Info.hh_run['hits'][5]['domain_id']
+test2 = XML_Info.hh_run['hits'][3]['domain_id']
 
+sql = RowSQL()
+row1 = sql.get_domain_row(test1)
+row2 = sql.get_domain_row(test2)
 
-conn = psycopg2.connect(**conn_param_dict)
-cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-row = get_domain_row(test, cur)
-cur.close()
-conn.close()
-
-print(get_path_to_domain(row['uid']))
+print(row1, row2)
