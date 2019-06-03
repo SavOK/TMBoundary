@@ -6,6 +6,14 @@ import sys
 import psycopg2
 import psycopg2.extras
 
+conn_param_dict = {
+        "dbname":"ecod", 
+        "user":"ecodweb", 
+        "host":"129.112.32.63", 
+        "port":"45000", 
+        "password":"serveruse421",
+        }
+
 from TMBoundrary import XMLParser
 
 def _check_inputFile(option, opt_str, value, parser):
@@ -15,24 +23,11 @@ def _check_inputFile(option, opt_str, value, parser):
     setattr(parser.values, option.dest, Path(value))
     parser.values.saved_infile = True
 
-conn_param_dict = {
-        "dbname":"ecod", 
-        "user":"ecodweb", 
-        "host":"feronia", 
-        "port":"45000", 
-        "password":"serveruse421",
-        }
-#conn = psycopg2.connect(**conn_param_dict)
-#cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-def get_psql_cursor(**kwark):
-    conn = psycopg2.connect(**kwark)
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    return cursor
 
 def get_domain_row(domain_id:str, c):
     c.execute('SELECT * FROM domain where id=%s', (domain_id,))
-    results = cursor.fetchone()
+    results = c.fetchone()
     if results is None:
         print(f"cannot find {domain_id}")
     res_dict = {k:v for k,v in results.items()}
@@ -41,7 +36,7 @@ def get_domain_row(domain_id:str, c):
 
 def get_path_to_domain(domain_uid:str, domain_root:Path=None):
     def _fill_uid(uid:str):
-        str_id = '0'*(9-len(uid))+uid
+        return '0'*(9-len(uid))+uid
         
     if domain_root is None:
         domain_root=Path("/data/ecod/domain_data")
@@ -65,5 +60,9 @@ XML_Info = XMLParser(options.input_xml_filepath)
 test = XML_Info.hh_run['hits'][5]['domain_id']
 
 
-cur = get_psql_cursor(**conn_param_dict)
+conn = psycopg2.connect(**conn_param_dict)
+cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 row = get_domain_row(test, cur)
+cur.close()
+conn.close()
+
