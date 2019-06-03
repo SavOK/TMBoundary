@@ -16,17 +16,17 @@ def _check_inputFile(option, opt_str, value, parser):
     parser.values.saved_infile = True
 
 
-def get_path_to_domain(domain_uid: str, domain_root: Path = None):
-    def _fill_uid(uid: str):
-        return '0'*(9-len(uid))+uid
+def _fill_uid(uid: str):
+    return '0'*(9-len(uid))+uid
 
+
+def get_path_to_domain(domain_uid: str, domain_root: Path = None):
     if domain_root is None:
         domain_root = Path("/data/ecod/domain_data")
     domain_uid = str(domain_uid)
     str_id = _fill_uid(domain_uid)
     dirpath = domain_root/str_id[2:7]/str_id
     return dirpath
-
 
 
 # if __name__ == "__main__":
@@ -48,7 +48,27 @@ sql = RowSQL()
 row1 = sql.get_domain_row(test1)
 row2 = sql.get_domain_row(test2)
 
-print(row1)
 domain_path1 = get_path_to_domain(row1['uid'])
-print(row2)
 domain_path2 = get_path_to_domain(row2['uid'])
+
+
+def get_domain_structure_path(uid: str):
+    pathtostructure = get_path_to_domain(uid)
+    #test is pdb is there
+    filepath = pathtostructure / f'{pathtostructure.name}.pdb'
+    if filepath.is_file():
+        return filepath
+    filepath = pathtostructure / f'{pathtostructure.name}.pdbnum.pdb'
+    if filepath.is_file():
+        return filepath
+    filepath = pathtostructure / f'{pathtostructure.name}.csv.pdb'
+    if filepath.is_file():
+        return filepath
+    filepath = pathtostructure / f'{pathtostructure.name}.seqres.pdb'
+    if filepath.is_file():
+        return filepath
+    print('cannot find pdb file for domain {uid}')
+    return None
+
+
+pdb_list = [F for F in domain_path1.glob('*pdb') if F.is_file()]
