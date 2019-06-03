@@ -24,7 +24,6 @@ def _check_inputFile(option, opt_str, value, parser):
     parser.values.saved_infile = True
 
 
-
 def get_domain_row(domain_id:str, c):
     c.execute('SELECT * FROM domain where id=%s', (domain_id,))
     results = c.fetchone()
@@ -40,6 +39,7 @@ def get_path_to_domain(domain_uid:str, domain_root:Path=None):
         
     if domain_root is None:
         domain_root=Path("/data/ecod/domain_data")
+    domain_uid = str(domain_uid)
     str_id = _fill_uid(domain_uid)
     dirpath = domain_root/str_id[2:7]/str_id
     return dirpath
@@ -66,3 +66,4 @@ row = get_domain_row(test, cur)
 cur.close()
 conn.close()
 
+print(get_path_to_domain(row['uid']))
