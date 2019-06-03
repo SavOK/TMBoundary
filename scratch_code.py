@@ -10,11 +10,19 @@ from TMBoundrary import RowSQL
 
 def _check_inputFile(option, opt_str, value, parser):
     f_path = Path(value)
-    if not f_path.exists():
-        raise OptionValueError(f"Cannot get {f_path()} file/directory")
+    if not f_path.is_file():
+        raise OptionValueError(f"Cannot get {str(f_path)} file")
     setattr(parser.values, option.dest, Path(value))
     parser.values.saved_infile = True
 
+def _check_inputDir(option, opt_str, value, parser):
+    f_path = Path(value)
+    if not f_path.is_dir():
+        f_path=f_path.expanduser()
+        if not f_path.is_dir():
+            raise OptionValueError(f"Cannot get {str(f_path)} directory")
+    setattr(parser.values, option.dest, Path(value))
+    parser.values.saved_infile = True
 
 def _fill_uid(uid: str):
     return '0'*(9-len(uid))+uid
@@ -37,7 +45,7 @@ options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str'
                           action='callback', callback=_check_inputFile)
 options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
                           help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
-                          action='callback', callback=_check_inputFile)
+                          action='callback', callback=_check_inputDir)
 (options, args) = options_parser.parse_args(args)
 if options.input_xml_filepath is None:
     options_parser.print_help()
