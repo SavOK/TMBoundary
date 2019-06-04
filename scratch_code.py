@@ -73,8 +73,5 @@ if not test_dir.is_dir():
     test_dir.mkdir()
 
 proc1 = subprocess.check_output(
-        f"cd {str(test_dir)}; ~rschaeff/bin/generate_pc_pdb.pl 5y6p bL", shell=True)
+    f"cd {str(test_dir)}; ~rschaeff/bin/generate_pc_pdb.pl 5y6p bL", shell=True)
 print(proc1)
-
-
-
