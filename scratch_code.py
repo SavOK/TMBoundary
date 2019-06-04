@@ -1,6 +1,8 @@
 from optparse import OptionParser, OptionValueError
 import xml.etree.ElementTree as ET
 from pathlib import Path
+import subprocess
+from subprocess import Popen, PIPE
 import sys
 
 from TMBoundrary import XMLParser
@@ -65,3 +67,14 @@ print(test_domain)
 pdb = PDBParser(test_domain)
 out_file = Path('./test_data/test1.pdb')
 pdb.get_region(out_file, 1, 40)
+
+test_dir = Path('/home/saveliy/Projects/TMBoundrary/TM')
+if not test_dir.is_dir():
+    test_dir.mkdir()
+
+proc1 = subprocess.check_output(
+        f"cd {str(test_dir)}; ~rschaeff/bin/generate_pc_pdb.pl 5y6p bL", shell=True)
+print(proc1)
+
+
+
