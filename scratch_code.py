@@ -57,10 +57,11 @@ test1 = XML_Info.hh_run['hits'][5]['domain_id']
 test2 = XML_Info.hh_run['hits'][3]['domain_id']
 
 sql = RowSQL()
-domain  = Domain()
+domain = Domain()
 
 row1 = sql.get_domain_row(test1)
 test_domain = domain.get_structure_path(row1['uid'])
 print(test_domain)
 pdb = PDBParser(test_domain)
+out_file = Path('./test_data/test1.pdb')
 pdb.get_region(out_file, 1, 40)
