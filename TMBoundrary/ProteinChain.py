@@ -11,7 +11,8 @@ class ProteinChainError(Exception):
 
 
 class ProteinChain:
-    def __init__(self, wd: str, pdb: str = None, chain: str = None, prog: str = None):
+    def __init__(self, wd: str, pdb: str = None, chain: str = None,
+                 prog: str = None):
         if prog is None:
             prog = '~rschaeff/bin/generate_pc_pdb.pl'
         self.wd = wd

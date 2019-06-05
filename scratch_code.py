@@ -61,9 +61,9 @@ test2 = XML_Info.hh_run['hits'][3]['domain_id']
 
 sql = RowSQL()
 domain = Domain()
+protein = ProteinChain(options.work_dir)
 
-
-print(test_domain)
-pdb = PDBParser(test_domain)
-out_file = Path('./test_data/test1.pdb')
-pdb.get_region(out_file, 1, 40)
+# print(test_domain)
+# pdb = PDBParser(test_domain)
+# out_file = Path('./test_data/test1.pdb')
+# pdb.get_region(out_file, 1, 40)
