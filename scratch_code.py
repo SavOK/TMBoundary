@@ -9,6 +9,7 @@ from TMBoundrary import XMLParser
 from TMBoundrary import RowSQL
 from TMBoundrary import PDBParser
 from TMBoundrary import Domain
+from TMBoundrary import ProteinChain
 
 
 def _set_strucutre_dir(CWD: Path = None,
@@ -61,17 +62,8 @@ test2 = XML_Info.hh_run['hits'][3]['domain_id']
 sql = RowSQL()
 domain = Domain()
 
-row1 = sql.get_domain_row(test1)
-test_domain = domain.get_structure_path(row1['uid'])
+
 print(test_domain)
 pdb = PDBParser(test_domain)
 out_file = Path('./test_data/test1.pdb')
 pdb.get_region(out_file, 1, 40)
-
-test_dir = Path('/home/saveliy/Projects/TMBoundrary/TM')
-if not test_dir.is_dir():
-    test_dir.mkdir()
-
-proc1 = subprocess.check_output(
-    f"cd {str(test_dir)}; ~rschaeff/bin/generate_pc_pdb.pl 5y6p bL", shell=True)
-print(proc1)
