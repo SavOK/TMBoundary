@@ -13,7 +13,9 @@ from TMBoundrary import ProteinChain
 
 
 def _set_strucutre_dir(CWD: Path = None,
-                       dir_name: str = 'TMStructures', exist_ok: bool = False):
+                       dir_name: str = None, exist_ok: bool = False):
+    if dir_name is None:
+        dir_name = 'TMstructures'
     if CWD is None:
         CWD = Path().absolute()
     str_dir = CWD / dir_name
@@ -56,12 +58,17 @@ if options.input_xml_filepath is None:
     sys.exit()
 
 XML_Info = XMLParser(options.input_xml_filepath)
-test1 = XML_Info.hh_run['hits'][5]['domain_id']
+str_dir = _set_strucutre_dir(options.work_dir)
+
+domain_id = XML_Info.hh_run['hits'][5]['domain_id']
 test2 = XML_Info.hh_run['hits'][3]['domain_id']
 
 sql = RowSQL()
+row_data = sql.get_domain_row(domain_id)
 domain = Domain()
-protein = ProteinChain(options.work_dir)
+path_to_domain = domain.get_structure_path(row_data['uid'])
+protein = ProteinChain(str_dir)
+
 
 # print(test_domain)
 # pdb = PDBParser(test_domain)
