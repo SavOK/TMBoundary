@@ -11,6 +11,7 @@ from TMBoundrary import RowSQL
 from TMBoundrary import PDBParser
 from TMBoundrary import Domain
 from TMBoundrary import ProteinChain
+from TMBoundrary import TMalign
 
 def _process_range(reg: str):
     ptr = re.compile(r"\w+[:](?:(?P<start>\d+)[-](?P<end>\d+))")
