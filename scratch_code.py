@@ -89,11 +89,60 @@ sql = RowSQL()
 row_data = sql.get_domain_row(domain_id)
 
 
-test_pdb1 = Path('C:\\Users\\Saveliy Belkin\\Projects\\TMBoundrary\\test_data\\001720163.pdb') 
-test_pdb2 = Path('C:\\Users\\Saveliy Belkin\\Projects\\TMBoundrary\\test_data\\out_file.pdb') 
+test_pdb1 = Path('/home/saveliy/Projects/TMBoundrary/test_data/test1.pdb') 
+test_pdb2 = Path('/home/saveliy/4xxk_A.pdb') 
 
-with Popen(['/home/saveliy/prog/TMalign/TMalign', str(test_pdb1), str(test_pdb2)]) as proc:
-    print(proc)
+
+with Popen(['/usr7/TMalign/TMalign', str(test_pdb1), str(test_pdb2), '-d','5'], 
+        stdout=PIPE) as proc:
+    k =[l.strip('\n') for l in proc.stdout.read().decode().split('\n')]
+    print(proc.stdout.read())
+
+
+def _parse_TMalign(output:list):
+    TMscore1_ptr = re.compile(r'TM-score.+?(?P<score>\d+[.]\d+).+?(Chain_1)')
+    TMscore2_ptr = re.compile(r'TM-score.+?(?P<score>\d+[.]\d+).+?(Chain_2)')
+    TMscoreN_ptr = re.compile(r'TM-score.+?(?P<score>\d+[.]\d+).+?(scaled by user)')
+    for line in output:
+        match = TMscore1_ptr.match(line)
+        if match:
+            tm1 = float(match.group('score'))
+        match = TMscore2_ptr.match(line)
+        if match:
+            tm2 = float(match.group('score'))
+        match = TMscoreN_ptr.match(line)
+        if match:
+            tmN = float(match.group('score'))
+    seq_1 = output[-5]
+    seq_a = output[-4]
+    seq_2 = output[-3]
+    return(tm1, tm2, tmN, seq_a)
+    pass
+
+def _get_align_reg(ali):
+    reg = []
+    start = 0
+    end = 0
+    regF = need_add=False
+    for ix, c in enumerate(ali):
+        if c == ':' or c == '.':
+            if not regF:
+                need_add=True
+                regF = True
+                start = ix+1
+                end = start
+            if regF:
+                end += 1
+        else:
+            if regF:
+                reg.append((start, end))
+                regF = False
+                need_add = False
+    if need_add:
+        reg.append((start, end))
+    return reg
+
+m = _parse_TMalign(k)
 # _process_range(range_test_1)
 
 # domain = Domain()
