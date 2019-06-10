@@ -13,6 +13,7 @@ from TMBoundrary import Domain
 from TMBoundrary import ProteinChain
 from TMBoundrary import TMalign
 
+
 def _process_range(reg: str):
     ptr = re.compile(r"\w+[:](?:(?P<start>\d+)[-](?P<end>\d+))")
     match = ptr.findall(reg)
@@ -34,6 +35,7 @@ def _process_range(reg: str):
             end_prev = end_curr
     region.append((start_prev-5, end_prev+5))
     return region
+
 
 def _set_strucutre_dir(CWD: Path = None,
                        dir_name: str = None, exist_ok: bool = False):
@@ -80,8 +82,43 @@ if options.input_xml_filepath is None:
     options_parser.print_help()
     sys.exit()
 
-XML_Info = XMLParser(options.input_xml_filepath)
+
+def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
+    query_parser = PDBParser(query_structure)
+    query_region = _process_range(hit['query_reg'])
+    query_reg_filename = f"{query_structure.stem}_{hit['query_reg']}.pdb"
+    query_region_file = WD / query_reg_filename
+    query_parser.get_region(out_file=query_region_file, regions=query_region)
+
+    hit_gen = ProteinChain(wd=str(WD))
+    hit_structure = hit_gen.get_chain_file(pdb=hit['pdb_id'],
+                                           chain=hit['chain_id'])
+    hit_region = _process_range(hit['hit_reg'])
+    hit_reg_filename = f"{hit['pdb_id']}_{hit['chain_id']}_{hit['hit_reg']}.pdb"
+    hit_region_file = WD/hit_reg_filename
+    hit_parser = PDBParser(hit_structure)
+    hit_parser.get_region(out_file=hit_region_file, regions=hit_region)
+    
+    TM = TMalign()
+    TM_data = TM.run_align(query_region_file, hit_region_file)
+    print(TM_data, query_region, hit_region)
+
+
+
+# Setup structure directory
 str_dir = _set_strucutre_dir(options.work_dir)
+# Setup classes
+protein_gen = ProteinChain(wd=str(str_dir))  # protein generator
+# Parse XML summary
+XML_Info = XMLParser(options.input_xml_filepath)
+# Set query structure
+query_structure = protein_gen.get_chain_file(XML_Info.pdb, XML_Info.chain)
+quary_parser = PDBParser(query_structure)
+
+# Process blast_chain
+for hit in XML_Info.chain_blast['hits'][:3]:
+    _process_chain_blast(hit, str_dir, query_structure)
+
 
 domain_id = XML_Info.hh_run['hits'][5]['domain_id']
 test2 = XML_Info.hh_run['hits'][3]
@@ -90,60 +127,10 @@ sql = RowSQL()
 row_data = sql.get_domain_row(domain_id)
 
 
-test_pdb1 = Path('/home/saveliy/Projects/TMBoundrary/test_data/test1.pdb') 
-test_pdb2 = Path('/home/saveliy/4xxk_A.pdb') 
+test_pdb1 = Path('/home/saveliy/Projects/TMBoundrary/test_data/test1.pdb')
+test_pdb2 = Path('/home/saveliy/4xxk_A.pdb')
 
 
-with Popen(['/usr7/TMalign/TMalign', str(test_pdb1), str(test_pdb2), '-d','5'], 
-        stdout=PIPE) as proc:
-    k =[l.strip('\n') for l in proc.stdout.read().decode().split('\n')]
-    print(proc.stdout.read())
-
-
-def _parse_TMalign(output:list):
-    TMscore1_ptr = re.compile(r'TM-score.+?(?P<score>\d+[.]\d+).+?(Chain_1)')
-    TMscore2_ptr = re.compile(r'TM-score.+?(?P<score>\d+[.]\d+).+?(Chain_2)')
-    TMscoreN_ptr = re.compile(r'TM-score.+?(?P<score>\d+[.]\d+).+?(scaled by user)')
-    for line in output:
-        match = TMscore1_ptr.match(line)
-        if match:
-            tm1 = float(match.group('score'))
-        match = TMscore2_ptr.match(line)
-        if match:
-            tm2 = float(match.group('score'))
-        match = TMscoreN_ptr.match(line)
-        if match:
-            tmN = float(match.group('score'))
-    seq_1 = output[-5]
-    seq_a = output[-4]
-    seq_2 = output[-3]
-    return(tm1, tm2, tmN, seq_a)
-    pass
-
-def _get_align_reg(ali):
-    reg = []
-    start = 0
-    end = 0
-    regF = need_add=False
-    for ix, c in enumerate(ali):
-        if c == ':' or c == '.':
-            if not regF:
-                need_add=True
-                regF = True
-                start = ix+1
-                end = start
-            if regF:
-                end += 1
-        else:
-            if regF:
-                reg.append((start, end))
-                regF = False
-                need_add = False
-    if need_add:
-        reg.append((start, end))
-    return reg
-
-m = _parse_TMalign(k)
 # _process_range(range_test_1)
 
 # domain = Domain()

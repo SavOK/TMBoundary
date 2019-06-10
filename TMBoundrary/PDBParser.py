@@ -48,8 +48,10 @@ class PDBParser:
             out_list += [line for line in res if line[13:16].strip() == 'CA']
         return out_list
 
-    def get_region(self, out_file: Path, start: int, end: int):
-        pdb_out = self._cut_region(start, end)
+    def get_region(self, out_file: Path, regions:list):
+        pdb_out = []
+        for r in regions:
+            pdb_out += self._cut_region(r[0], r[1])
         oFile = open(out_file, 'w')
         for l in pdb_out:
             oFile.write(l)
