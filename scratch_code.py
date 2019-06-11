@@ -333,17 +333,17 @@ if __name__ == "__main__":
     Info = {}
     # Process blast_chain
     Info['blast_chain'] = []
-    for hit in XML_Info.chain_blast['hits'][-10:]:
-        Info['blast_chain'].append(
-            _process_chain_blast(hit, str_dir, query_structure))
+    # for hit in XML_Info.chain_blast['hits'][-10:]:
+    #     Info['blast_chain'].append(
+    #         _process_chain_blast(hit, str_dir, query_structure))
 
     Info['blast_domain'] = []
-    for hit in XML_Info.domain_blast['hits'][-10:]:
+    for hit in XML_Info.domain_blast['hits']:
         Info['blast_domain'].append(
             _process_domain_blast(hit, str_dir, query_structure))
 
     Info['hh_domain'] = []
-    for hit in XML_Info.hh_run['hits'][-10:]:
+    for hit in XML_Info.hh_run['hits']:
         Info['hh_domain'].append(_process_domain_hh(hit, str_dir, query_structure))
 
     out_file = _set_output_files(options.input_xml_filepath)

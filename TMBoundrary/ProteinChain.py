@@ -44,8 +44,6 @@ class ProteinChain:
         if not self.wd.is_dir():
             self.wd.mkdir()
         proc_str = f'cd {str(self.wd)} ; {self.prog} {pdb} {chain}'
-        print(proc_str)
-        print(out_path)
         proc = subprocess.check_output(proc_str, shell=True)
         if not out_path.is_file():
             errStr = f"Cannot get chain {pdb} {chain}"
