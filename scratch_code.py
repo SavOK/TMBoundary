@@ -78,20 +78,11 @@ def _check_inputDir(option, opt_str, value, parser):
     parser.values.saved_infile = True
 
 
-# if __name__ == "__main__":
-args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
-        '-w', '~/Projects/TMBoundrary']
-options_parser = OptionParser()
-options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
-                          help="input blast_summ.xml FILE", metavar="FILE",
-                          action='callback', callback=_check_inputFile)
-options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
-                          help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
-                          action='callback', callback=_check_inputDir, default=None)
-(options, args) = options_parser.parse_args(args)
-if options.input_xml_filepath is None:
-    options_parser.print_help()
-    sys.exit()
+def _set_output_files(infile: Path):
+    DIR = infile.parent
+    p = infile.name.split('.')
+    new_name = f"{p[0]}.{p[1]}.blast_summ_tm.xml"
+    return DIR / new_name
 
 
 def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
@@ -127,12 +118,15 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     clean_data['pdb_id'] = hit['pdb_id']
     clean_data['chain_id'] = hit['chain_id']
     clean_data['tm_score_norm'] = TM_data['tmN']
+    clean_data['tm_score_query'] = TM_data['tm1']
+    clean_data['tm_score_hit'] = TM_data['tm2']
     clean_data['query_reg'] = query_reg
     clean_data['hit_reg'] = hit_reg
     clean_data['query_seq'] = TM_data['query_seq']
     clean_data['hit_seq'] = TM_data['hit_seq']
     clean_data['tm_align'] = TM_data['tm_align']
     return(clean_data)
+
 
 def _process_domain_blast(hit: dict, WD: Path, query_structure: Path):
     query_parser = PDBParser(query_structure)
@@ -163,12 +157,78 @@ def _process_domain_blast(hit: dict, WD: Path, query_structure: Path):
     clean_data['domain_id'] = hit['domain_id']
     clean_data['domain_uid'] = domain_info['uid']
     clean_data['tm_score_norm'] = TM_data['tmN']
+    clean_data['tm_score_query'] = TM_data['tm1']
+    clean_data['tm_score_hit'] = TM_data['tm2']
     clean_data['query_reg'] = query_reg
     clean_data['hit_reg'] = hit_reg
     clean_data['query_seq'] = TM_data['query_seq']
     clean_data['hit_seq'] = TM_data['hit_seq']
     clean_data['tm_align'] = TM_data['tm_align']
     return(clean_data)
+
+
+def _process_domain_hh(hit: dict, WD: Path, query_structure: Path):
+    query_parser = PDBParser(query_structure)
+    query_region = _process_range(hit['query_reg'])
+    query_reg_filename = f"{query_structure.stem}_{hit['query_reg']}.pdb"
+    query_region_file = WD / query_reg_filename
+    query_parser.get_region(out_file=query_region_file, regions=query_region)
+
+    sql = RowSQL()
+    domain_info = sql.get_domain_row(hit['domain_id'])
+    domain = Domain()
+    domain_path = domain.get_structure_path(domain_info['uid'])
+
+    TM = TMalign()
+    TM_data = TM.run_align(query_region_file, domain_path)
+    ali_reg = TM_data['ali_reg']
+    query_dif = ali_reg[0][0] - query_region[0][0]
+    query_reg = ''
+    for r in ali_reg:
+        query_reg += f'{r[0]-query_dif}-{r[1]-query_dif},'
+    query_reg = query_reg.strip(',')
+    hit_dif = ali_reg[0][0]-1
+    hit_reg = ''
+    for r in ali_reg:
+        hit_reg += f'{r[0]-hit_dif}-{r[1]-hit_dif},'
+    hit_reg = hit_reg.strip(',')
+    clean_data = {}
+    clean_data['domain_id'] = hit['domain_id']
+    clean_data['domain_uid'] = domain_info['uid']
+    clean_data['tm_score_norm'] = TM_data['tmN']
+    clean_data['tm_score_query'] = TM_data['tm1']
+    clean_data['tm_score_hit'] = TM_data['tm2']
+    clean_data['query_reg'] = query_reg
+    clean_data['hit_reg'] = hit_reg
+    clean_data['query_seq'] = TM_data['query_seq']
+    clean_data['hit_seq'] = TM_data['hit_seq']
+    clean_data['tm_align'] = TM_data['tm_align']
+    return(clean_data)
+
+
+def create_XML(old, new, Info):
+    xml = ET.parse(str(old))
+    root = xml.getroot()
+    tm = ET.SubElement('root', 'tm_summary')
+    xml.write(str(new))
+    return root
+
+
+# if __name__ == "__main__":
+args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
+        '-w', '~/Projects/TMBoundrary']
+options_parser = OptionParser()
+options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
+                          help="input blast_summ.xml FILE", metavar="FILE",
+                          action='callback', callback=_check_inputFile)
+options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
+                          help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
+                          action='callback', callback=_check_inputDir, default=None)
+(options, args) = options_parser.parse_args(args)
+if options.input_xml_filepath is None:
+    options_parser.print_help()
+    sys.exit()
+
 
 # Setup structure directory
 str_dir = _set_strucutre_dir(options.work_dir)
@@ -189,17 +249,12 @@ blast_domains = []
 for hit in XML_Info.domain_blast['hits'][-10:]:
     blast_domains.append(_process_domain_blast(hit, str_dir, query_structure))
 
-domain_id = XML_Info.hh_run['hits'][5]['domain_id']
-test2 = XML_Info.hh_run['hits'][3]
+hh_domains = []
+for hit in XML_Info.hh_run['hits'][-10:]:
+    hh_domains.append(_process_domain_hh(hit, str_dir, query_structure))
 
-sql = RowSQL()
-row_data = sql.get_domain_row(domain_id)
-
-
-test_pdb1 = Path('/home/saveliy/Projects/TMBoundrary/test_data/test1.pdb')
-test_pdb2 = Path('/home/saveliy/4xxk_A.pdb')
-
-
+out_file = _set_output_files(options.input_xml_filepath)
+create_XML(options.input_xml_filepath, out_file, blast_domains)
 # _process_range(range_test_1)
 
 # domain = Domain()
