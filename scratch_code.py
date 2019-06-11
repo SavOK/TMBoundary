@@ -305,8 +305,8 @@ def create_XML(old, new, Info):
 
 
 if __name__ == "__main__":
-    args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
-            '-w', '~/Projects/TMBoundrary']
+    # args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
+    #         '-w', '~/Projects/TMBoundrary']
     options_parser = OptionParser()
     options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
                             help="input blast_summ.xml FILE", metavar="FILE",
@@ -314,7 +314,7 @@ if __name__ == "__main__":
     options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
                             help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
                             action='callback', callback=_check_inputDir, default=None)
-    (options, args) = options_parser.parse_args(args)
+    (options, args) = options_parser.parse_args()
     if options.input_xml_filepath is None:
         options_parser.print_help()
         sys.exit()
