@@ -19,6 +19,8 @@ class PDBParser:
             pdb_list = []
             res_list = []
             for ix, line in enumerate(oFile):
+                if not line.startswith('ATOM'): 
+                    continue
                 if ix == 0:
                     chain_prev = line[21]
                     res_prev = line[22:28].strip()

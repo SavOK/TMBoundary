@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class TMalign:
-    def __inti__(self, prog: str = None):
+    def __init__(self, prog: str = None):
         if prog is None:
             prog = '/usr7/TMalign/TMalign'
         self.prog = Path(prog)
@@ -58,7 +58,8 @@ class TMalign:
         if cut is None:
             cut = 5
         args = [str(self.prog), str(query), str(hit), '-d', str(cut)]
-        with Popen(args, stdout=PIPE) as proc:
+        print(args)
+        with Popen(args=args, stdout=PIPE) as proc:
             outputlines = [l.strip('\n')
                            for l in proc.stdout.read().decode().split('\n')]
             out_dict = self._parse_TMalign(outputlines)

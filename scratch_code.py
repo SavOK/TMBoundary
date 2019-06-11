@@ -16,11 +16,16 @@ from TMBoundrary import TMalign
 
 def _process_range(reg: str):
     ptr = re.compile(r"\w+[:](?:(?P<start>\d+)[-](?P<end>\d+))")
+    ptr_simp = re.compile(r"(?P<start>\d+)[-](?P<end>\d+)")
     match = ptr.findall(reg)
+    print("Test", match ,"region", reg)
+    if len(match) < 1:
+        match=ptr_simp.findall(reg)
     if len(match) == 1:
         start = int(match[0][0])
         end = int(match[0][0])
         return [(start-5, end+5)]
+    print("Test", match ,"region", reg)
     start_prev = int(match[0][0])
     end_prev = int(match[0][1])
     region = []
