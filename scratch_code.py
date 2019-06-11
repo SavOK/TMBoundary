@@ -87,9 +87,9 @@ def _check_inputFile(option, opt_str, value, parser):
 def _check_inputDir(option, opt_str, value, parser):
     f_path = Path(value)
     if not f_path.is_dir():
-        f_path = f_path.expanduser()
-        if not f_path.is_dir():
-            raise OptionValueError(f"Cannot get {str(f_path)} directory")
+        # f_path = f_path.expanduser()
+        # if not f_path.is_dir():
+        raise OptionValueError(f"Cannot get {str(f_path)} directory")
     setattr(parser.values, option.dest, Path(f_path))
     parser.values.saved_infile = True
 
