@@ -27,8 +27,10 @@ class TMalign:
                     reg.append((start, end))
                     regF = False
                     need_add = False
+                else:
+                    continue
         if need_add:
-            reg.append((start, end))
+            reg.append((start, end-1))
         return reg
 
     def _parse_TMalign(self, output: list):

@@ -18,14 +18,14 @@ def _process_range(reg: str):
     # ptr = re.compile(r"\w+[:](?:(?P<start>\d+)[-](?P<end>\d+))")
     ptr = re.compile(r"(?P<start>\d+)[-](?P<end>\d+)")
     match = ptr.findall(reg)
-    print("Test", match, "region", reg)
     # if len(match) < 1:
     #     match = ptr_simp.findall(reg)
     if len(match) == 1:
-        start = int(match[0][0])
-        end = int(match[0][0])
-        return [(start-5, end+5)]
-    print("Test", match, "region", reg)
+        start = int(match[0][0])-5
+        end = int(match[0][1])+5
+        if start < 1:
+            start = 1
+        return [(start, end)]
     start_prev = int(match[0][0])
     end_prev = int(match[0][1])
     region = []
@@ -35,10 +35,16 @@ def _process_range(reg: str):
         if (start_curr - end_prev) < 20:
             end_prev = end_curr
         else:
-            region.append((start_prev-5, end_prev+5))
+            start = start_prev - 5
+            if start < 1:
+                start = 1
+            region.append((start, end_prev+5))
             start_prev = start_curr
             end_prev = end_curr
-    region.append((start_prev-5, end_prev+5))
+    start = start_prev - 5
+    if start < 1:
+        start = 1
+    region.append((start, end_prev+5))
     return region
 
 
@@ -106,7 +112,26 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
 
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, hit_region_file)
-    print(TM_data, query_region, hit_region)
+    ali_reg = TM_data['ali_reg']
+    query_dif  = ali_reg[0][0]-query_region[0][0]
+    query_reg = ''
+    for r in ali_reg:
+        query_reg+=f'{r[0]-query_dif}-{r[1]-query_dif},'
+    query_reg=query_reg.strip(',')
+    hit_dif  = ali_reg[0][0]-hit_region[0][0]
+    hit_reg = ''
+    for r in ali_reg:
+        hit_reg+=f'{r[0]-hit_dif}-{r[1]-hit_dif},'
+    hit_reg=hit_reg.strip(',')
+    clean_data = {}
+    clean_data['pdb_id'] = hit['pdb_id']
+    clean_data['chain_id'] = hit['chain_id']
+    clean_data['tm_score_norm'] = TM_data['tmN']
+    clean_data['query_reg'] = query_reg
+    clean_data['hit_reg'] = hit_reg
+    clean_data['query_seq'] = TM_data['query_seq']
+    clean_data['hit_seq'] = TM_data['hit_seq']
+    return(clean_data)
 
 
 # Setup structure directory
@@ -120,8 +145,9 @@ query_structure = protein_gen.get_chain_file(XML_Info.pdb, XML_Info.chain)
 quary_parser = PDBParser(query_structure)
 
 # Process blast_chain
-for hit in XML_Info.chain_blast['hits'][:3]:
-    _process_chain_blast(hit, str_dir, query_structure)
+blast_chains = []
+for hit in XML_Info.chain_blast['hits'][-10:]:
+    blast_chains.append( _process_chain_blast(hit, str_dir, query_structure))
 
 
 domain_id = XML_Info.hh_run['hits'][5]['domain_id']
