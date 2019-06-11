@@ -13,6 +13,21 @@ from TMBoundrary import Domain
 from TMBoundrary import ProteinChain
 from TMBoundrary import TMalign
 
+def indent(elem, level=0):
+    i = "\n" + level*"  "
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "  "
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for elem in elem:
+            indent(elem, level+1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+
 
 def _process_range(reg: str):
     # ptr = re.compile(r"\w+[:](?:(?P<start>\d+)[-](?P<end>\d+))")
@@ -230,27 +245,35 @@ def _create_domain_xml(hit, num):
 def create_XML(old, new, Info):
     xml = ET.parse(str(old))
     root = xml.getroot()
-    tm = ET.SubElement(root, 'tm_summary')
-    tm_blast_domain = ET.SubElement(tm, 'tm_blast_domain')
+    ET.SubElement(root, 'tm_summary')
+    tm = root.find('tm_summary')
+    ET.SubElement(tm, 'tm_blast_domain')
+    tm_blast_domain = tm.find('tm_blast_domain')
     for ix, I in enumerate(Info):
-        hit_xml = ET.SubElement(tm_blast_domain, 'hit')
-        hit_xml = ET.Element('hit')
-        hit_xml.attrib['num'] = ix+1
-        hit_xml.attrib['domain_id'] = I['domain_id']
-        hit_xml.attrib['domain_uid'] = I['domain_uid']
-        hit_xml.attrib['tm_score_query'] = I['tm_score_query']
-        hit_xml.attrib['tm_score_hit'] = I['tm_score_hit']
-        hit_xml.attrib['tm_score_norm'] = I['tm_score_norm']
-        query_reg = ET.SubElement(hit_xml, 'query_reg')
-        query_reg.text = I['query_reg']
-        hit_reg = ET.SubElement(hit_xml, 'hit_reg')
-        hit_reg.text = I['hit_reg']
-        query_seq = ET.SubElement(hit_xml, 'query_seq')
+        ET.SubElement(tm_blast_domain, 'hit')
+        hit = tm_blast_domain[ix]
+        hit.attrib['num'] = str(ix+1)
+        hit.attrib['domain_id'] = str(I['domain_id'])
+        hit.attrib['domain_uid'] = str(I['domain_uid'])
+        hit.attrib['tm_score_query'] =str( I['tm_score_query'])
+        hit.attrib['tm_score_hit'] = str(I['tm_score_hit'])
+        hit.attrib['tm_score_norm'] = str(I['tm_score_norm'])
+        ET.SubElement(hit, 'query_reg')
+        query_reg = hit.find('query_reg')
+        query_reg.text = str(I['query_reg'])
+        ET.SubElement(hit, 'hit_reg')
+        hit_reg=hit.find('hit_reg')
+        hit_reg.text = str(I['hit_reg'])
+        ET.SubElement(hit, 'query_seq')
+        query_seq = hit.find('query_seq')
         query_seq.text = I['query_seq']
-        ali_seq = ET.SubElement(hit_xml, 'tm_align')
-        ali_seq.text = I['tm_align']
-        hit_seq = ET.SubElement(hit_xml, 'hit_seq')
-        hit_seq.text = I['hit_seq']
+        ET.SubElement(hit, 'align_seq')
+        ali_seq = hit.find('align_seq')
+        ali_seq.text = str(I['tm_align'])
+        ET.SubElement(hit, 'hit_seq')
+        hit_seq = hit.find('hit_seq')
+        hit_seq.text = str(I['hit_seq'])
+    indent(root)
     xml.write(str(new))
     return root
 
