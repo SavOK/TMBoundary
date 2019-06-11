@@ -15,17 +15,17 @@ from TMBoundrary import TMalign
 
 
 def _process_range(reg: str):
-    ptr = re.compile(r"\w+[:](?:(?P<start>\d+)[-](?P<end>\d+))")
-    ptr_simp = re.compile(r"(?P<start>\d+)[-](?P<end>\d+)")
+    # ptr = re.compile(r"\w+[:](?:(?P<start>\d+)[-](?P<end>\d+))")
+    ptr = re.compile(r"(?P<start>\d+)[-](?P<end>\d+)")
     match = ptr.findall(reg)
-    print("Test", match ,"region", reg)
-    if len(match) < 1:
-        match=ptr_simp.findall(reg)
+    print("Test", match, "region", reg)
+    # if len(match) < 1:
+    #     match = ptr_simp.findall(reg)
     if len(match) == 1:
         start = int(match[0][0])
         end = int(match[0][0])
         return [(start-5, end+5)]
-    print("Test", match ,"region", reg)
+    print("Test", match, "region", reg)
     start_prev = int(match[0][0])
     end_prev = int(match[0][1])
     region = []
@@ -103,11 +103,10 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     hit_region_file = WD/hit_reg_filename
     hit_parser = PDBParser(hit_structure)
     hit_parser.get_region(out_file=hit_region_file, regions=hit_region)
-    
+
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, hit_region_file)
     print(TM_data, query_region, hit_region)
-
 
 
 # Setup structure directory

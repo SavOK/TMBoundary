@@ -19,7 +19,7 @@ class PDBParser:
             pdb_list = []
             res_list = []
             for ix, line in enumerate(oFile):
-                if not line.startswith('ATOM'): 
+                if not line.startswith('ATOM'):
                     continue
                 if ix == 0:
                     chain_prev = line[21]
@@ -50,7 +50,7 @@ class PDBParser:
             out_list += [line for line in res if line[13:16].strip() == 'CA']
         return out_list
 
-    def get_region(self, out_file: Path, regions:list):
+    def get_region(self, out_file: Path, regions: list):
         pdb_out = []
         for r in regions:
             pdb_out += self._cut_region(r[0], r[1])
