@@ -113,16 +113,16 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, hit_region_file)
     ali_reg = TM_data['ali_reg']
-    query_dif  = ali_reg[0][0]-query_region[0][0]
+    query_dif = ali_reg[0][0] - query_region[0][0]
     query_reg = ''
     for r in ali_reg:
-        query_reg+=f'{r[0]-query_dif}-{r[1]-query_dif},'
-    query_reg=query_reg.strip(',')
-    hit_dif  = ali_reg[0][0]-hit_region[0][0]
+        query_reg += f'{r[0]-query_dif}-{r[1]-query_dif},'
+    query_reg = query_reg.strip(',')
+    hit_dif = ali_reg[0][0]-hit_region[0][0]
     hit_reg = ''
     for r in ali_reg:
-        hit_reg+=f'{r[0]-hit_dif}-{r[1]-hit_dif},'
-    hit_reg=hit_reg.strip(',')
+        hit_reg += f'{r[0]-hit_dif}-{r[1]-hit_dif},'
+    hit_reg = hit_reg.strip(',')
     clean_data = {}
     clean_data['pdb_id'] = hit['pdb_id']
     clean_data['chain_id'] = hit['chain_id']
@@ -131,8 +131,44 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     clean_data['hit_reg'] = hit_reg
     clean_data['query_seq'] = TM_data['query_seq']
     clean_data['hit_seq'] = TM_data['hit_seq']
+    clean_data['tm_align'] = TM_data['tm_align']
     return(clean_data)
 
+def _process_domain_blast(hit: dict, WD: Path, query_structure: Path):
+    query_parser = PDBParser(query_structure)
+    query_region = _process_range(hit['query_reg'])
+    query_reg_filename = f"{query_structure.stem}_{hit['query_reg']}.pdb"
+    query_region_file = WD / query_reg_filename
+    query_parser.get_region(out_file=query_region_file, regions=query_region)
+
+    sql = RowSQL()
+    domain_info = sql.get_domain_row(hit['domain_id'])
+    domain = Domain()
+    domain_path = domain.get_structure_path(domain_info['uid'])
+
+    TM = TMalign()
+    TM_data = TM.run_align(query_region_file, domain_path)
+    ali_reg = TM_data['ali_reg']
+    query_dif = ali_reg[0][0] - query_region[0][0]
+    query_reg = ''
+    for r in ali_reg:
+        query_reg += f'{r[0]-query_dif}-{r[1]-query_dif},'
+    query_reg = query_reg.strip(',')
+    hit_dif = ali_reg[0][0]-1
+    hit_reg = ''
+    for r in ali_reg:
+        hit_reg += f'{r[0]-hit_dif}-{r[1]-hit_dif},'
+    hit_reg = hit_reg.strip(',')
+    clean_data = {}
+    clean_data['domain_id'] = hit['domain_id']
+    clean_data['domain_uid'] = domain_info['uid']
+    clean_data['tm_score_norm'] = TM_data['tmN']
+    clean_data['query_reg'] = query_reg
+    clean_data['hit_reg'] = hit_reg
+    clean_data['query_seq'] = TM_data['query_seq']
+    clean_data['hit_seq'] = TM_data['hit_seq']
+    clean_data['tm_align'] = TM_data['tm_align']
+    return(clean_data)
 
 # Setup structure directory
 str_dir = _set_strucutre_dir(options.work_dir)
@@ -147,8 +183,11 @@ quary_parser = PDBParser(query_structure)
 # Process blast_chain
 blast_chains = []
 for hit in XML_Info.chain_blast['hits'][-10:]:
-    blast_chains.append( _process_chain_blast(hit, str_dir, query_structure))
+    blast_chains.append(_process_chain_blast(hit, str_dir, query_structure))
 
+blast_domains = []
+for hit in XML_Info.domain_blast['hits'][-10:]:
+    blast_domains.append(_process_domain_blast(hit, str_dir, query_structure))
 
 domain_id = XML_Info.hh_run['hits'][5]['domain_id']
 test2 = XML_Info.hh_run['hits'][3]

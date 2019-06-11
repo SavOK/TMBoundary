@@ -51,9 +51,10 @@ class TMalign:
             match = TMscoreN_ptr.match(line)
             if match:
                 out_dict['tmN'] = float(match.group('score'))
-        out_dict['query_seq'] = output[-5]
-        out_dict['hit_seq'] = output[-3]
+        out_dict['query_seq'] = output[-5].strip('\n')
+        out_dict['hit_seq'] = output[-3].strip('\n')
         out_dict['ali_reg'] = self._get_align_reg(output[-4])
+        out_dict['tm_align'] = output[-4].strip('\n')
         return out_dict
 
     def run_align(self,query: Path, hit: Path, cut: int = None):
