@@ -206,10 +206,51 @@ def _process_domain_hh(hit: dict, WD: Path, query_structure: Path):
     return(clean_data)
 
 
+def _create_domain_xml(hit, num):
+    hit_xml = ET.Element('hit')
+    hit_xml.attrib['num']=num
+    hit_xml.attrib['domain_id'] = hit['domain_id']
+    hit_xml.attrib['domain_uid'] = hit['domain_uid']
+    hit_xml.attrib['tm_score_query'] =hit['tm_score_query']
+    hit_xml.attrib['tm_score_hit'] = hit['tm_score_hit']
+    hit_xml.attrib['tm_score_norm'] = hit['tm_score_norm']
+    query_reg = ET.SubElement(hit_xml,'query_reg')
+    query_reg.text=hit['query_reg'] 
+    hit_reg = ET.SubElement(hit_xml,'hit_reg')
+    hit_reg.text=hit['hit_reg']
+    query_seq = ET.SubElement(hit_xml,'query_seq')
+    query_seq.text=hit['query_seq']
+    ali_seq = ET.SubElement(hit_xml,'tm_align')
+    ali_seq.text=hit['tm_align']
+    hit_seq = ET.SubElement(hit_xml,'hit_seq')
+    hit_seq.text=hit['hit_seq']
+    return hit_xml
+
 def create_XML(old, new, Info):
+
     xml = ET.parse(str(old))
     root = xml.getroot()
-    tm = ET.SubElement('root', 'tm_summary')
+    tm = ET.SubElement(root, 'tm_summary')
+    tm_blast_domain = ET.SubElement(tm, 'tm_blast_domain')
+    for ix, I in enumerate(Info):
+        hit_xml = ET.SubElement(tm_blast_domain, 'hit')
+        hit_xml = ET.Element('hit')
+        hit_xml.attrib['num']=ix+1
+        hit_xml.attrib['domain_id'] = I['domain_id']
+        hit_xml.attrib['domain_uid'] = I['domain_uid']
+        hit_xml.attrib['tm_score_query'] = I['tm_score_query']
+        hit_xml.attrib['tm_score_hit'] = I['tm_score_hit']
+        hit_xml.attrib['tm_score_norm'] = I['tm_score_norm']
+        query_reg = ET.SubElement(hit_xml,'query_reg')
+        query_reg.text=I['query_reg'] 
+        hit_reg = ET.SubElement(hit_xml,'hit_reg')
+        hit_reg.text=I['hit_reg']
+        query_seq = ET.SubElement(hit_xml,'query_seq')
+        query_seq.text=I['query_seq']
+        ali_seq = ET.SubElement(hit_xml,'tm_align')
+        ali_seq.text=I['tm_align']
+        hit_seq = ET.SubElement(hit_xml,'hit_seq')
+        hit_seq.text=I['hit_seq']
     xml.write(str(new))
     return root
 
@@ -254,6 +295,7 @@ for hit in XML_Info.hh_run['hits'][-10:]:
     hh_domains.append(_process_domain_hh(hit, str_dir, query_structure))
 
 out_file = _set_output_files(options.input_xml_filepath)
+print(out_file)
 create_XML(options.input_xml_filepath, out_file, blast_domains)
 # _process_range(range_test_1)
 
