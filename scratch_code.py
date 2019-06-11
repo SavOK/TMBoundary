@@ -13,6 +13,7 @@ from TMBoundrary import Domain
 from TMBoundrary import ProteinChain
 from TMBoundrary import TMalign
 
+
 def indent(elem, level=0):
     i = "\n" + level*"  "
     if len(elem):
@@ -249,20 +250,46 @@ def create_XML(old, new, Info):
     tm = root.find('tm_summary')
     ET.SubElement(tm, 'tm_blast_domain')
     tm_blast_domain = tm.find('tm_blast_domain')
-    for ix, I in enumerate(Info):
+    for ix, I in enumerate(Info['blast_domain']):
         ET.SubElement(tm_blast_domain, 'hit')
         hit = tm_blast_domain[ix]
         hit.attrib['num'] = str(ix+1)
         hit.attrib['domain_id'] = str(I['domain_id'])
         hit.attrib['domain_uid'] = str(I['domain_uid'])
-        hit.attrib['tm_score_query'] =str( I['tm_score_query'])
+        hit.attrib['tm_score_query'] = str(I['tm_score_query'])
         hit.attrib['tm_score_hit'] = str(I['tm_score_hit'])
         hit.attrib['tm_score_norm'] = str(I['tm_score_norm'])
         ET.SubElement(hit, 'query_reg')
         query_reg = hit.find('query_reg')
         query_reg.text = str(I['query_reg'])
         ET.SubElement(hit, 'hit_reg')
-        hit_reg=hit.find('hit_reg')
+        hit_reg = hit.find('hit_reg')
+        hit_reg.text = str(I['hit_reg'])
+        ET.SubElement(hit, 'query_seq')
+        query_seq = hit.find('query_seq')
+        query_seq.text = I['query_seq']
+        ET.SubElement(hit, 'align_seq')
+        ali_seq = hit.find('align_seq')
+        ali_seq.text = str(I['tm_align'])
+        ET.SubElement(hit, 'hit_seq')
+        hit_seq = hit.find('hit_seq')
+        hit_seq.text = str(I['hit_seq'])
+    ET.SubElement(tm, 'tm_hh_domain')
+    tm_hh_domain = tm.find('tm_hh_domain')
+    for ix, I in enumerate(Info['hh_domain']):
+        ET.SubElement(tm_hh_domain, 'hit')
+        hit = tm_hh_domain[ix]
+        hit.attrib['num'] = str(ix+1)
+        hit.attrib['domain_id'] = str(I['domain_id'])
+        hit.attrib['domain_uid'] = str(I['domain_uid'])
+        hit.attrib['tm_score_query'] = str(I['tm_score_query'])
+        hit.attrib['tm_score_hit'] = str(I['tm_score_hit'])
+        hit.attrib['tm_score_norm'] = str(I['tm_score_norm'])
+        ET.SubElement(hit, 'query_reg')
+        query_reg = hit.find('query_reg')
+        query_reg.text = str(I['query_reg'])
+        ET.SubElement(hit, 'hit_reg')
+        hit_reg = hit.find('hit_reg')
         hit_reg.text = str(I['hit_reg'])
         ET.SubElement(hit, 'query_seq')
         query_seq = hit.find('query_seq')
@@ -304,22 +331,25 @@ XML_Info = XMLParser(options.input_xml_filepath)
 query_structure = protein_gen.get_chain_file(XML_Info.pdb, XML_Info.chain)
 quary_parser = PDBParser(query_structure)
 
+Info = {}
 # Process blast_chain
-blast_chains = []
+Info['blast_chain'] = []
 for hit in XML_Info.chain_blast['hits'][-10:]:
-    blast_chains.append(_process_chain_blast(hit, str_dir, query_structure))
+    Info['blast_chain'].append(
+        _process_chain_blast(hit, str_dir, query_structure))
 
-blast_domains = []
+Info['blast_domain'] = []
 for hit in XML_Info.domain_blast['hits'][-10:]:
-    blast_domains.append(_process_domain_blast(hit, str_dir, query_structure))
+    Info['blast_domain'].append(
+        _process_domain_blast(hit, str_dir, query_structure))
 
-hh_domains = []
+Info['hh_domain'] = []
 for hit in XML_Info.hh_run['hits'][-10:]:
-    hh_domains.append(_process_domain_hh(hit, str_dir, query_structure))
+    Info['hh_domain'].append(_process_domain_hh(hit, str_dir, query_structure))
 
 out_file = _set_output_files(options.input_xml_filepath)
 print(out_file)
-t = create_XML(options.input_xml_filepath, out_file, blast_domains)
+t = create_XML(options.input_xml_filepath, out_file, Info)
 # _process_range(range_test_1)
 
 # domain = Domain()
