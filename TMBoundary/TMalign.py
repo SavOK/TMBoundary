@@ -61,7 +61,7 @@ class TMalign:
         if cut is None:
             cut = 5
         args = [str(self.prog), str(query), str(hit), '-d', str(cut)]
-        #print(args)
+        print(args)
         with Popen(args=args, stdout=PIPE) as proc:
             outputlines = [l.strip('\n')
                            for l in proc.stdout.read().decode().split('\n')]
