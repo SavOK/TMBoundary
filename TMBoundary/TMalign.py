@@ -9,29 +9,23 @@ class TMalign:
             prog = '/usr7/TMalign/TMalign'
         self.prog = Path(prog)
 
-    def _get_align_reg(self, ali):
-        reg = []
-        start = end = 0
-        regF = need_add = False
-        for ix, c in enumerate(ali):
-            if c == ':' or c == '.':
-                if not regF:
-                    need_add = True
-                    regF = True
-                    start = ix+1
-                    end = start
-                if regF:
-                    end += 1
-            else:
-                if regF:
-                    reg.append((start, end))
-                    regF = False
-                    need_add = False
-                else:
-                    continue
-        if need_add:
-            reg.append((start, end-1))
-        return reg
+    def _get_align_region(self, seq: str, ali: str):
+        region = []
+        curr_start = 0
+        curr_end = 0
+        L = [(ix+1, x) for ix, x in enumerate(zip(seq, ali))
+             if x[0] != '-' and x[1] != ' ']
+        curr_start = L[0][0]
+        curr_end = L[0][0]
+        for ix, x in L[1:]:
+            if ix - curr_end == 1:  # continue
+                curr_end = ix
+            else:  # break
+                region.append([curr_start, curr_end])
+                curr_start = ix
+                curr_end = ix
+        region.append([curr_start, curr_end])
+        return region
 
     def _parse_TMalign(self, output: list):
         out_dict = {}
@@ -53,15 +47,18 @@ class TMalign:
                 out_dict['tmN'] = float(match.group('score'))
         out_dict['query_seq'] = output[-5].strip('\n')
         out_dict['hit_seq'] = output[-3].strip('\n')
-        out_dict['ali_reg'] = self._get_align_reg(output[-4])
+        out_dict['query_reg'] = self._get_align_region(
+            out_dict['query_seq'], output[-4])
+        out_dict['hit_reg'] = self._get_align_region(
+            out_dict['hit_seq'], output[-4])
         out_dict['tm_align'] = output[-4].strip('\n')
         return out_dict
 
-    def run_align(self,query: Path, hit: Path, cut: int = None):
+    def run_align(self, query: Path, hit: Path, cut: int = None):
         if cut is None:
             cut = 5
         args = [str(self.prog), str(query), str(hit), '-d', str(cut)]
-        #print(args)
+        # print(args)
         with Popen(args=args, stdout=PIPE) as proc:
             outputlines = [l.strip('\n')
                            for l in proc.stdout.read().decode().split('\n')]
