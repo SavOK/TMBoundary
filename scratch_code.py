@@ -305,50 +305,50 @@ def create_XML(old, new, Info):
     xml.write(str(new))
 
 
-if __name__ == "__main__":
-    # args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
-    #         '-w', '~/Projects/TMBoundrary']
-    options_parser = OptionParser()
-    options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
-                              help="input blast_summ.xml FILE", metavar="FILE",
-                              action='callback', callback=_check_inputFile)
-    options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
-                              help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
-                              action='callback', callback=_check_inputDir, default=None)
-    (options, args) = options_parser.parse_args()
-    if options.input_xml_filepath is None:
-        options_parser.print_help()
-        sys.exit()
+#if __name__ == "__main__":
+args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
+        '-w', '.']
+options_parser = OptionParser()
+options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
+                          help="input blast_summ.xml FILE", metavar="FILE",
+                          action='callback', callback=_check_inputFile)
+options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
+                          help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
+                          action='callback', callback=_check_inputDir, default=None)
+(options, args) = options_parser.parse_args(args)
+if options.input_xml_filepath is None:
+    options_parser.print_help()
+    sys.exit()
 
-    # Setup structure directory
-    str_dir = _set_strucutre_dir(options.work_dir)
-    # Setup classes
-    protein_gen = ProteinChain(wd=str(str_dir))  # protein generator
-    # Parse XML summary
-    XML_Info = XMLParser(options.input_xml_filepath)
-    # Set query structure
-    query_structure = protein_gen.get_chain_file(XML_Info.pdb, XML_Info.chain)
-    quary_parser = PDBParser(query_structure)
+# Setup structure directory
+str_dir = _set_strucutre_dir(options.work_dir)
+# Setup classes
+protein_gen = ProteinChain(wd=str(str_dir))  # protein generator
+# Parse XML summary
+XML_Info = XMLParser(options.input_xml_filepath)
+# Set query structure
+query_structure = protein_gen.get_chain_file(XML_Info.pdb, XML_Info.chain)
+quary_parser = PDBParser(query_structure)
 
-    Info = {}
-    # Process blast_chain
-    Info['blast_chain'] = []
-    # for hit in XML_Info.chain_blast['hits'][-10:]:
-    #     Info['blast_chain'].append(
-    #         _process_chain_blast(hit, str_dir, query_structure))
+Info = {}
+# Process blast_chain
+Info['blast_chain'] = []
+# for hit in XML_Info.chain_blast['hits'][-10:]:
+#     Info['blast_chain'].append(
+#         _process_chain_blast(hit, str_dir, query_structure))
 
-    Info['blast_domain'] = []
-    for hit in XML_Info.domain_blast['hits'][0:5]:
-        Info['blast_domain'].append(
-            _process_domain_blast(hit, str_dir, query_structure))
+Info['blast_domain'] = []
+for hit in XML_Info.domain_blast['hits'][0:5]:
+    Info['blast_domain'].append(
+        _process_domain_blast(hit, str_dir, query_structure))
 
-    Info['hh_domain'] = []
-    # for hit in XML_Info.hh_run['hits']:
-    #     Info['hh_domain'].append(
-    #         _process_domain_hh(hit, str_dir, query_structure))
+Info['hh_domain'] = []
+# for hit in XML_Info.hh_run['hits']:
+#     Info['hh_domain'].append(
+#         _process_domain_hh(hit, str_dir, query_structure))
 
-    out_file = _set_output_files(options.input_xml_filepath)
-    create_XML(options.input_xml_filepath, out_file, Info)
+out_file = _set_output_files(options.input_xml_filepath)
+create_XML(options.input_xml_filepath, out_file, Info)
 
 
 # _process_range(range_test_1)
