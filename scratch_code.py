@@ -6,12 +6,12 @@ import subprocess
 from subprocess import Popen, PIPE
 import sys
 
-from TMBoundrary import XMLParser
-from TMBoundrary import RowSQL
-from TMBoundrary import PDBParser
-from TMBoundrary import Domain
-from TMBoundrary import ProteinChain
-from TMBoundrary import TMalign
+from TMBoundary import XMLParser
+from TMBoundary import RowSQL
+from TMBoundary import PDBParser
+from TMBoundary import Domain
+from TMBoundary import ProteinChain
+from TMBoundary import TMalign
 
 
 def indent(elem, level=0):
@@ -149,7 +149,8 @@ def _process_domain_blast(hit: dict, WD: Path, query_structure: Path):
     query_region = _process_range(hit['query_reg'])
     query_reg_filename = f"{query_structure.stem}_{hit['query_reg']}.pdb"
     query_region_file = WD / query_reg_filename
-    query_parser.get_region(out_file=query_region_file, regions=query_region)
+    query_map = query_parser.get_region(
+        out_file=query_region_file, regions=query_region)
 
     sql = RowSQL()
     domain_info = sql.get_domain_row(hit['domain_id'])
@@ -309,16 +310,15 @@ if __name__ == "__main__":
     #         '-w', '~/Projects/TMBoundrary']
     options_parser = OptionParser()
     options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
-                            help="input blast_summ.xml FILE", metavar="FILE",
-                            action='callback', callback=_check_inputFile)
+                              help="input blast_summ.xml FILE", metavar="FILE",
+                              action='callback', callback=_check_inputFile)
     options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
-                            help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
-                            action='callback', callback=_check_inputDir, default=None)
+                              help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
+                              action='callback', callback=_check_inputDir, default=None)
     (options, args) = options_parser.parse_args()
     if options.input_xml_filepath is None:
         options_parser.print_help()
         sys.exit()
-
 
     # Setup structure directory
     str_dir = _set_strucutre_dir(options.work_dir)
@@ -338,16 +338,18 @@ if __name__ == "__main__":
     #         _process_chain_blast(hit, str_dir, query_structure))
 
     Info['blast_domain'] = []
-    for hit in XML_Info.domain_blast['hits']:
+    for hit in XML_Info.domain_blast['hits'][0:5]:
         Info['blast_domain'].append(
             _process_domain_blast(hit, str_dir, query_structure))
 
     Info['hh_domain'] = []
-    for hit in XML_Info.hh_run['hits']:
-        Info['hh_domain'].append(_process_domain_hh(hit, str_dir, query_structure))
+    # for hit in XML_Info.hh_run['hits']:
+    #     Info['hh_domain'].append(
+    #         _process_domain_hh(hit, str_dir, query_structure))
 
     out_file = _set_output_files(options.input_xml_filepath)
     create_XML(options.input_xml_filepath, out_file, Info)
+
 
 # _process_range(range_test_1)
 
@@ -360,3 +362,4 @@ if __name__ == "__main__":
 # pdb = PDBParser(test_domain)
 # out_file = Path('./test_data/test1.pdb')
 # pdb.get_region(out_file, 1, 40)
+

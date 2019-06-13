@@ -87,8 +87,6 @@ def _check_inputFile(option, opt_str, value, parser):
 def _check_inputDir(option, opt_str, value, parser):
     f_path = Path(value)
     if not f_path.is_dir():
-        # f_path = f_path.expanduser()
-        # if not f_path.is_dir():
         raise OptionValueError(f"Cannot get {str(f_path)} directory")
     setattr(parser.values, option.dest, Path(f_path))
     parser.values.saved_infile = True
@@ -149,7 +147,7 @@ def _process_domain_blast(hit: dict, WD: Path, query_structure: Path):
     query_region = _process_range(hit['query_reg'])
     query_reg_filename = f"{query_structure.stem}_{hit['query_reg']}.pdb"
     query_region_file = WD / query_reg_filename
-    query_parser.get_region(out_file=query_region_file, regions=query_region)
+    query_map = query_parser.get_region(out_file=query_region_file, regions=query_region)
 
     sql = RowSQL()
     domain_info = sql.get_domain_row(hit['domain_id'])

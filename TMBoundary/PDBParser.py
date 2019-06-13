@@ -50,11 +50,25 @@ class PDBParser:
             out_list += [line for line in res if line[13:16].strip() == 'CA']
         return out_list
 
+    def _residues_to_keep(self, regions: list):
+        res_to_keep = set()
+        for r in regions:
+            R = set(range(r[0], r[1]+1))
+            res_to_keep = res_to_keep.union(R)
+        return res_to_keep
+
     def get_region(self, out_file: Path, regions: list):
         pdb_out = []
-        for r in regions:
-            pdb_out += self._cut_region(r[0], r[1])
+        out_map = {}
+        res_to_keep = self._residues_to_keep(regions)
+        for ix, r in enumerate(res_to_keep):
+            if r < 1 or r > len(self.pdb_list):
+                continue
+            pdb_out += [line for line in self.pdb_list[r-1]
+                        if line[13:16].strip() == 'CA']
+            out_map.update({ix+1:r})
         oFile = open(out_file, 'w')
         for l in pdb_out:
             oFile.write(l)
         oFile.close()
+        return out_map
