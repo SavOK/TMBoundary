@@ -99,8 +99,6 @@ def _set_output_files(infile: Path):
     return DIR / new_name
 
 
-
-
 def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     query_parser = PDBParser(query_structure)
     query_region = _process_range(hit['query_reg'])
@@ -148,7 +146,7 @@ def _get_region_from_align(align: list, region_map: dict):
     align_res = []
     for segment in align:
         for r in range(segment[0], segment[1]+1):
-            #if r in region_map:
+            # if r in region_map:
             align_res.append(region_map[r])
     regions = []
     curr_start = align_res[0]
@@ -168,6 +166,8 @@ def _get_region_from_align(align: list, region_map: dict):
     else:
         regions.append(f"{curr_start}-{curr_end}")
     return regions
+
+
 def _process_domain(hit: dict, WD: Path, query_structure: Path):
     query_parser = PDBParser(query_structure)
     query_region = _process_range(hit['query_reg'])

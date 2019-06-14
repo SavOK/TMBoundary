@@ -146,7 +146,7 @@ def _get_region_from_align(align: list, region_map: dict):
     align_res = []
     for segment in align:
         for r in range(segment[0], segment[1]+1):
-            #if r in region_map:
+            # if r in region_map:
             align_res.append(region_map[r])
     regions = []
     curr_start = align_res[0]
@@ -281,7 +281,7 @@ Info['blast_chain'] = []
 #         _process_chain_blast(hit, str_dir, query_structure))
 
 Info['blast_domain'] = []
-#for hit in XML_Info.domain_blast['hits'][34:36]:
+# for hit in XML_Info.domain_blast['hits'][34:36]:
 #   Info['blast_domain'].append(
 #       _process_domain(hit, str_dir, query_structure))
 

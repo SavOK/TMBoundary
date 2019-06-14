@@ -14,9 +14,9 @@ class TMalign:
         curr_start = 0
         curr_end = 0
         # filter to remove gaps
-        L = [ x for  x in zip(seq, ali)if x[0] != '-' ] 
+        L = [x for x in zip(seq, ali)if x[0] != '-']
         # filter to remove misalign
-        en = [(ix+1, x) for ix, x in enumerate(L) if x[1] != ' '] 
+        en = [(ix+1, x) for ix, x in enumerate(L) if x[1] != ' ']
         curr_start = en[0][0]
         curr_end = en[0][0]
         for ix, x in en[1:]:
