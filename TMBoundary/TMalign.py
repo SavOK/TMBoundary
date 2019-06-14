@@ -13,11 +13,13 @@ class TMalign:
         region = []
         curr_start = 0
         curr_end = 0
-        L = [(ix+1, x) for ix, x in enumerate(zip(seq, ali))
-             if x[0] != '-' and x[1] != ' ']
-        curr_start = L[0][0]
-        curr_end = L[0][0]
-        for ix, x in L[1:]:
+        # filter to remove gaps
+        L = [ x for  x in zip(seq, ali)if x[0] != '-' ] 
+        # filter to remove misalign
+        en = [(ix+1, x) for ix, x in enumerate(L) if x[1] != ' '] 
+        curr_start = en[0][0]
+        curr_end = en[0][0]
+        for ix, x in en[1:]:
             if ix - curr_end == 1:  # continue
                 curr_end = ix
             else:  # break
@@ -58,7 +60,7 @@ class TMalign:
         if cut is None:
             cut = 5
         args = [str(self.prog), str(query), str(hit), '-d', str(cut)]
-        print(args)
+        # print(args)
         with Popen(args=args, stdout=PIPE) as proc:
             outputlines = [l.strip('\n')
                            for l in proc.stdout.read().decode().split('\n')]

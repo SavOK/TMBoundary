@@ -87,8 +87,6 @@ def _check_inputFile(option, opt_str, value, parser):
 def _check_inputDir(option, opt_str, value, parser):
     f_path = Path(value)
     if not f_path.is_dir():
-        # f_path = f_path.expanduser()
-        # if not f_path.is_dir():
         raise OptionValueError(f"Cannot get {str(f_path)} directory")
     setattr(parser.values, option.dest, Path(f_path))
     parser.values.saved_infile = True
@@ -147,23 +145,26 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
 def _get_region_from_align(align: list, region_map: dict):
     align_res = []
     for segment in align:
-        for r in set(range(segment[0], segment[1]+1)):
-            if r in region_map:
-                align_res.append(region_map[r])
+        for r in range(segment[0], segment[1]+1):
+            #if r in region_map:
+            align_res.append(region_map[r])
     regions = []
     curr_start = align_res[0]
     curr_end = align_res[0]
-    for r in align_res[1:]:
+    for ix, r in enumerate(align_res[1:]):
         if r - curr_end == 1:
             curr_end = r
+            continue
+        if curr_end == curr_start:
+            regions.append(f"{curr_end}")
         else:
-            if curr_end == curr_start:
-                regions.append(f"{curr_end}")
-            else:
-                regions.append(f"{curr_start}-{curr_end}")
-                curr_start = r
-                curr_end = r
-    regions.append(f"{curr_start}-{curr_end}")
+            regions.append(f"{curr_start}-{curr_end}")
+        curr_start = r
+        curr_end = r
+    if curr_end == curr_start:
+        regions.append(f"{curr_end}")
+    else:
+        regions.append(f"{curr_start}-{curr_end}")
     return regions
 
 
@@ -284,7 +285,7 @@ Info['blast_domain'] = []
 #        _process_domain(hit, str_dir, query_structure))
 
 Info['hh_domain'] = []
-for hit in XML_Info.hh_run['hits']:
+for hit in XML_Info.hh_run['hits'][60:70]:
     Info['hh_domain'].append(
         _process_domain(hit, str_dir, query_structure))
 
