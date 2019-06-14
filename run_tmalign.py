@@ -98,26 +98,27 @@ def _set_output_files(infile: Path):
     new_name = f"{p[0]}.{p[1]}.blast_summ_tm.xml"
     return DIR / new_name
 
-def _get_region_from_align(align:list, region_map:dict):
+
+def _get_region_from_align(align: list, region_map: dict):
     align_res = []
     for segment in align:
         for r in set(range(segment[0], segment[1]+1)):
             if r in region_map:
                 align_res.append(region_map[r])
-    
+
     regions = []
-    curr_start=align_res[0]
+    curr_start = align_res[0]
     curr_end = align_res[0]
     for r in align_res[1:]:
         if r - curr_end == 1:
             curr_end = r
         else:
-            if curr_end==curr_start:
+            if curr_end == curr_start:
                 regions.append(f"{curr_end}")
             else:
                 regions.append(f"{curr_start}-{curr_end}")
-                curr_start=r
-                curr_end=r
+                curr_start = r
+                curr_end = r
     regions.append(f"{curr_start}-{curr_end}")
     return regions
 
@@ -165,8 +166,6 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     return(clean_data)
 
 
-
-
 def _process_domain(hit: dict, WD: Path, query_structure: Path):
     query_parser = PDBParser(query_structure)
     query_region = _process_range(hit['query_reg'])
@@ -182,12 +181,12 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     # run tm align
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, domain_path)
-    query_ali = TM_data['query_reg'] 
+    query_ali = TM_data['query_reg']
     query_ali_region = _get_region_from_align(query_ali, query_map)
-    hit_ali = TM_data['hit_reg'] 
-    hit_map = {k:v for k,v in 
-            zip(range(1,len(TM_data['hit_seq'])), 
-                range(1,len(TM_data['hit_seq'])))}
+    hit_ali = TM_data['hit_reg']
+    hit_map = {k: v for k, v in
+               zip(range(1, len(TM_data['hit_seq'])),
+                   range(1, len(TM_data['hit_seq'])))}
     hit_ali_region = _get_region_from_align(hit_ali, hit_map)
     clean_data = {}
     clean_data['domain_id'] = hit['domain_id']
@@ -203,27 +202,7 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     return(clean_data)
 
 
-def _create_domain_xml(hit, num):
-    hit_xml = ET.Element('hit')
-    hit_xml.attrib['num'] = num
-    hit_xml.attrib['domain_id'] = hit['domain_id']
-    hit_xml.attrib['domain_uid'] = hit['domain_uid']
-    hit_xml.attrib['tm_score_query'] = hit['tm_score_query']
-    hit_xml.attrib['tm_score_hit'] = hit['tm_score_hit']
-    hit_xml.attrib['tm_score_norm'] = hit['tm_score_norm']
-    query_reg = ET.SubElement(hit_xml, 'query_reg')
-    query_reg.text = hit['query_reg']
-    hit_reg = ET.SubElement(hit_xml, 'hit_reg')
-    hit_reg.text = hit['hit_reg']
-    query_seq = ET.SubElement(hit_xml, 'query_seq')
-    query_seq.text = hit['query_seq']
-    ali_seq = ET.SubElement(hit_xml, 'tm_align')
-    ali_seq.text = hit['tm_align']
-    hit_seq = ET.SubElement(hit_xml, 'hit_seq')
-    hit_seq.text = hit['hit_seq']
-    return hit_xml
-
-def add_xml_hit(head:ET.Element, ix:int, I:dict):
+def add_xml_hit(head: ET.Element, ix: int, I: dict):
     ET.SubElement(head, 'hit')
     hit = head[-1]
     hit.attrib['num'] = str(ix+1)
@@ -271,16 +250,15 @@ if __name__ == "__main__":
     #         '-w', '~/Projects/TMBoundrary']
     options_parser = OptionParser()
     options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
-                            help="input blast_summ.xml FILE", metavar="FILE",
-                            action='callback', callback=_check_inputFile)
+                              help="input blast_summ.xml FILE", metavar="FILE",
+                              action='callback', callback=_check_inputFile)
     options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
-                            help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
-                            action='callback', callback=_check_inputDir, default=None)
+                              help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
+                              action='callback', callback=_check_inputDir, default=None)
     (options, args) = options_parser.parse_args()
     if options.input_xml_filepath is None:
         options_parser.print_help()
         sys.exit()
-
 
     # Setup structure directory
     str_dir = _set_strucutre_dir(options.work_dir)
@@ -306,7 +284,8 @@ if __name__ == "__main__":
 
     Info['hh_domain'] = []
     for hit in XML_Info.hh_run['hits']:
-        Info['hh_domain'].append(_process_domain(hit, str_dir, query_structure))
+        Info['hh_domain'].append(
+            _process_domain(hit, str_dir, query_structure))
 
     out_file = _set_output_files(options.input_xml_filepath)
     create_XML(options.input_xml_filepath, out_file, Info)

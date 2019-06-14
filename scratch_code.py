@@ -143,28 +143,28 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     clean_data['tm_align'] = TM_data['tm_align']
     return(clean_data)
 
-def _get_region_from_align(align:list, region_map:dict):
+
+def _get_region_from_align(align: list, region_map: dict):
     align_res = []
     for segment in align:
         for r in set(range(segment[0], segment[1]+1)):
             if r in region_map:
                 align_res.append(region_map[r])
     regions = []
-    curr_start=align_res[0]
+    curr_start = align_res[0]
     curr_end = align_res[0]
     for r in align_res[1:]:
         if r - curr_end == 1:
             curr_end = r
         else:
-            if curr_end==curr_start:
+            if curr_end == curr_start:
                 regions.append(f"{curr_end}")
             else:
                 regions.append(f"{curr_start}-{curr_end}")
-                curr_start=r
-                curr_end=r
+                curr_start = r
+                curr_end = r
     regions.append(f"{curr_start}-{curr_end}")
     return regions
-
 
 
 def _process_domain(hit: dict, WD: Path, query_structure: Path):
@@ -182,12 +182,12 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     # run tm align
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, domain_path)
-    query_ali = TM_data['query_reg'] 
+    query_ali = TM_data['query_reg']
     query_ali_region = _get_region_from_align(query_ali, query_map)
-    hit_ali = TM_data['hit_reg'] 
-    hit_map = {k:v for k,v in 
-            zip(range(1,len(TM_data['hit_seq'])), 
-                range(1,len(TM_data['hit_seq'])))}
+    hit_ali = TM_data['hit_reg']
+    hit_map = {k: v for k, v in
+               zip(range(1, len(TM_data['hit_seq'])),
+                   range(1, len(TM_data['hit_seq'])))}
     hit_ali_region = _get_region_from_align(hit_ali, hit_map)
     clean_data = {}
     clean_data['domain_id'] = hit['domain_id']
@@ -203,9 +203,7 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     return(clean_data)
 
 
-
-
-def add_xml_hit(head:ET.Element, ix:int, I:dict):
+def add_xml_hit(head: ET.Element, ix: int, I: dict):
     ET.SubElement(head, 'hit')
     hit = head[-1]
     hit.attrib['num'] = str(ix+1)
@@ -248,7 +246,7 @@ def create_XML(old, new, Info):
     xml.write(str(new))
 
 
-#if __name__ == "__main__":
+# if __name__ == "__main__":
 args = ['-i', './test_data/5mo0_A.develop205.blast_summ.xml',
         '-w', '.']
 options_parser = OptionParser()
@@ -281,7 +279,7 @@ Info['blast_chain'] = []
 #         _process_chain_blast(hit, str_dir, query_structure))
 
 Info['blast_domain'] = []
-#for hit in XML_Info.domain_blast['hits']:
+# for hit in XML_Info.domain_blast['hits']:
 #    Info['blast_domain'].append(
 #        _process_domain(hit, str_dir, query_structure))
 
@@ -305,4 +303,3 @@ create_XML(options.input_xml_filepath, out_file, Info)
 # pdb = PDBParser(test_domain)
 # out_file = Path('./test_data/test1.pdb')
 # pdb.get_region(out_file, 1, 40)
-
