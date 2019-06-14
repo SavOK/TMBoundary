@@ -183,12 +183,13 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     # run tm align
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, domain_path)
+    print(TM_data)
     query_ali = TM_data['query_reg']
     query_ali_region = _get_region_from_align(query_ali, query_map)
     hit_ali = TM_data['hit_reg']
     hit_map = {k: v for k, v in
-               zip(range(1, len(TM_data['hit_seq'])),
-                   range(1, len(TM_data['hit_seq'])))}
+               zip(range(1, len(TM_data['hit_seq'])+1),
+                   range(1, len(TM_data['hit_seq'])+1))}
     hit_ali_region = _get_region_from_align(hit_ali, hit_map)
     clean_data = {}
     clean_data['domain_id'] = hit['domain_id']
@@ -280,14 +281,15 @@ Info['blast_chain'] = []
 #         _process_chain_blast(hit, str_dir, query_structure))
 
 Info['blast_domain'] = []
-# for hit in XML_Info.domain_blast['hits']:
-#    Info['blast_domain'].append(
-#        _process_domain(hit, str_dir, query_structure))
+#for hit in XML_Info.domain_blast['hits'][34:36]:
+#   Info['blast_domain'].append(
+#       _process_domain(hit, str_dir, query_structure))
 
 Info['hh_domain'] = []
-for hit in XML_Info.hh_run['hits'][60:70]:
+for hit in XML_Info.hh_run['hits'][-4:-2]:
     Info['hh_domain'].append(
         _process_domain(hit, str_dir, query_structure))
+
 
 out_file = _set_output_files(options.input_xml_filepath)
 create_XML(options.input_xml_filepath, out_file, Info)

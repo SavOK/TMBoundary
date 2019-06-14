@@ -187,8 +187,8 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     query_ali_region = _get_region_from_align(query_ali, query_map)
     hit_ali = TM_data['hit_reg']
     hit_map = {k: v for k, v in
-               zip(range(1, len(TM_data['hit_seq'])),
-                   range(1, len(TM_data['hit_seq'])))}
+               zip(range(1, len(TM_data['hit_seq'])+1),
+                   range(1, len(TM_data['hit_seq'])+1))}
     hit_ali_region = _get_region_from_align(hit_ali, hit_map)
     clean_data = {}
     clean_data['domain_id'] = hit['domain_id']
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     #         _process_chain_blast(hit, str_dir, query_structure))
 
     Info['blast_domain'] = []
-    for hit in XML_Info.domain_blast['hits']:
+    for ix, hit in enumerate(XML_Info.domain_blast['hits']):
         Info['blast_domain'].append(
             _process_domain(hit, str_dir, query_structure))
 
