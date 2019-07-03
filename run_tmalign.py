@@ -248,8 +248,9 @@ def create_XML(old, new, Info):
 
 
 if __name__ == "__main__":
-    # args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
-    #         '-w', '~/Projects/TMBoundrary']
+#    args = ['-i', 
+#            '/data/ecod/database_versions/v239/repair.develop239/ecod_dump/6imn_B/6imn_B.develop239.blast_summ.xml',
+#            ]
     options_parser = OptionParser()
     options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
                               help="input blast_summ.xml FILE", metavar="FILE",

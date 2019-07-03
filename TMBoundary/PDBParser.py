@@ -55,7 +55,7 @@ class PDBParser:
         for r in regions:
             R = set(range(r[0], r[1]+1))
             res_to_keep = res_to_keep.union(R)
-        return res_to_keep
+        return sorted(res_to_keep)
 
     def get_region(self, out_file: Path, regions: list):
         pdb_out = []
