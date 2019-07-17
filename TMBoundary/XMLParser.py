@@ -30,7 +30,11 @@ class XMLParser:
             hit_info['pdb_id'] = xml.attrib['pdb_id']
             hit_info['chain_id'] = xml.attrib['chain_id']
             hit_info['hsp_count'] = int(xml.attrib['hsp_count'])
-            hit_info['evalues'] = float(xml.attrib['evalues'])
+            try:
+                hit_info['evalues'] = float(xml.attrib['evalues'])
+            except ValueError:
+                values = [float(x) for x in xml.attrib['evalues'].split(',')]
+                hit_info['evalue'] = min(values)
             if recType == 'd':
                 hit_info['domain_id'] = xml.attrib['domain_id']
             elif recType == 'c':
