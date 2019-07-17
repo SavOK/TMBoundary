@@ -66,7 +66,7 @@ class PDBParser:
                 continue
             pdb_out += [line for line in self.pdb_list[r-1]
                         if line[13:16].strip() == 'CA']
-            out_map.update({ix+1:r})
+            out_map.update({ix+1: r})
         oFile = open(out_file, 'w')
         for l in pdb_out:
             oFile.write(l)

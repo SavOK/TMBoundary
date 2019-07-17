@@ -33,7 +33,7 @@ class ProteinChain:
         if chain is None:
             chain = self.chain
         else:
-            self.chain=chain
+            self.chain = chain
         if chain is None or pdb is None:
             raise ProteinChainError('PDB or Chain is not set')
         if self.prog is None:

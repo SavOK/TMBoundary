@@ -14,26 +14,28 @@ class RowSQL:
     def __init__(self, dbname: str = None, user: str = None,
                  host: str = None, port: str = None, password: str = None):
         self._conn_param_dict = dict()
-        if not dbname is None:
+        if dbname is not None:
             self._conn_param_dict["dbname"] = dbname
         else:
-            self._conn_param_dict["dbname"] = self._conn_param_default['dbname']
-        if not user is None:
+            self._conn_param_dict["dbname"] = (
+                self._conn_param_default['dbname'])
+        if user is not None:
             self._conn_param_dict["user"] = user
         else:
             self._conn_param_dict["user"] = self._conn_param_default['user']
-        if not host is None:
+        if host is not None:
             self._conn_param_dict["host"] = host
         else:
             self._conn_param_dict["host"] = self._conn_param_default['host']
-        if not port is None:
+        if port is not None:
             self._conn_param_dict["port"] = port
         else:
             self._conn_param_dict["port"] = self._conn_param_default['port']
-        if not password is None:
+        if password is not None:
             self._conn_param_dict["password"] = password
         else:
-            self._conn_param_dict["password"] = self._conn_param_default['password']
+            self._conn_param_dict["password"] = (
+                self._conn_param_default['password'])
         self._connect()
 
     def _connect(self):

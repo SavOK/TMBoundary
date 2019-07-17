@@ -1,5 +1,5 @@
 from pathlib import Path
-import  subprocess
+import subprocess
 
 
 class DomainFileError(Exception):
@@ -24,13 +24,15 @@ class Domain:
         str_id = self._fill_uid(domain_uid)
         dirpath = self.root_path/str_id[2:7]/str_id
         return dirpath
-    
-    def _grep_file(self, uid:str):
+
+    def _grep_file(self, uid: str):
         path_to_strc = self._get_path_to_domain_location(uid)
-        grep_str = 'grep' + ' -El '+ f'\'^.{{13}}(CA )\' ' +f"{str(path_to_strc)}/*pdb"
-        proc = subprocess.check_output(grep_str, stderr=subprocess.STDOUT, shell=True)
+        grep_str = ('grep' + ' -El ' + f'\'^.{{13}}(CA )\' ' +
+                    f"{str(path_to_strc)}/*pdb")
+        proc = subprocess.check_output(grep_str,
+                                       stderr=subprocess.STDOUT, shell=True)
         file_list = [p.strip() for p in proc.decode().strip().split('\n')]
-        if len(file_list)==0:
+        if len(file_list) == 0:
             raise DomainFileError(f'Cannot find pdb file {uid}')
         return(file_list[0])
 
