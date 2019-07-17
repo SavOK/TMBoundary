@@ -60,9 +60,13 @@ class TMalign:
         if cut is None:
             cut = 5
         args = [str(self.prog), str(query), str(hit), '-d', str(cut)]
-        # print(args)
-        with Popen(args=args, stdout=PIPE) as proc:
+#        print(args)
+        with Popen(args=args, stdout=PIPE, stderr=PIPE) as proc:
             outputlines = [l.strip('\n')
                            for l in proc.stdout.read().decode().split('\n')]
+        if proc.returncode == 0:
             out_dict = self._parse_TMalign(outputlines)
+        else:
+            print(f"NOTE: CANNOT align {query} {hit}")
+            return None
         return out_dict

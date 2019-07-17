@@ -183,6 +183,8 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     # run tm align
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, domain_path)
+    if TM_data is None:
+        return None
     query_ali = TM_data['query_reg']
     query_ali_region = _get_region_from_align(query_ali, query_map)
     hit_ali = TM_data['hit_reg']
@@ -238,18 +240,23 @@ def create_XML(old, new, Info):
     ET.SubElement(tm, 'tm_blast_domain')
     tm_blast_domain = tm.find('tm_blast_domain')
     for ix, I in enumerate(Info['blast_domain']):
+        if I is None:
+            continue
         add_xml_hit(tm_blast_domain, ix, I)
     ET.SubElement(tm, 'tm_hh_domain')
     tm_hh_domain = tm.find('tm_hh_domain')
     for ix, I in enumerate(Info['hh_domain']):
+        if I is None:
+            continue
         add_xml_hit(tm_hh_domain, ix, I)
     indent(root)
     xml.write(str(new))
 
 
 if __name__ == "__main__":
-    # args = ['-i', './test_data/5y6p_bL.develop201.blast_summ.xml',
-    #         '-w', '~/Projects/TMBoundrary']
+    args = ['-i', 
+            '/data/ecod/database_versions/v239/repair.develop239/ecod_dump/6hc2_B/6hc2_B.develop239.blast_summ.xml',
+            ]
     options_parser = OptionParser()
     options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
                               help="input blast_summ.xml FILE", metavar="FILE",
