@@ -102,7 +102,7 @@ def _set_output_files(infile: Path):
 def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     query_parser = PDBParser(query_structure)
     query_region = _process_range(hit['query_reg'])
-    query_reg_filename = f"{query_structure.stem}_{hit['query_reg']}.pdb"
+    query_reg_filename = f"{query_structure.stem}_{hit['num']}_query.pdb"
     query_region_file = WD / query_reg_filename
     query_parser.get_region(out_file=query_region_file, regions=query_region)
 
@@ -110,7 +110,7 @@ def _process_chain_blast(hit: dict, WD: Path, query_structure: Path):
     hit_structure = hit_gen.get_chain_file(pdb=hit['pdb_id'],
                                            chain=hit['chain_id'])
     hit_region = _process_range(hit['hit_reg'])
-    hit_reg_filename = f"{hit['pdb_id']}_{hit['chain_id']}_{hit['hit_reg']}.pdb"
+    hit_reg_filename = f"{hit['pdb_id']}_{hit['chain_id']}_{hit['num']}_hit.pdb"
     hit_region_file = WD/hit_reg_filename
     hit_parser = PDBParser(hit_structure)
     hit_parser.get_region(out_file=hit_region_file, regions=hit_region)
@@ -171,7 +171,7 @@ def _get_region_from_align(align: list, region_map: dict):
 def _process_domain(hit: dict, WD: Path, query_structure: Path):
     query_parser = PDBParser(query_structure)
     query_region = _process_range(hit['query_reg'])
-    query_reg_filename = f"{query_structure.stem}_{hit['query_reg']}.pdb"
+    query_reg_filename = f"{query_structure.stem}_{hit['num']}_query.pdb"
     query_region_file = WD / query_reg_filename
     query_map = query_parser.get_region(
         out_file=query_region_file, regions=query_region)
@@ -183,7 +183,8 @@ def _process_domain(hit: dict, WD: Path, query_structure: Path):
     # run tm align
     TM = TMalign()
     TM_data = TM.run_align(query_region_file, domain_path)
-    print(TM_data)
+    if TM_data is None:
+        return None
     query_ali = TM_data['query_reg']
     query_ali_region = _get_region_from_align(query_ali, query_map)
     hit_ali = TM_data['hit_reg']
@@ -239,24 +240,30 @@ def create_XML(old, new, Info):
     ET.SubElement(tm, 'tm_blast_domain')
     tm_blast_domain = tm.find('tm_blast_domain')
     for ix, I in enumerate(Info['blast_domain']):
+        if I is None:
+            continue
         add_xml_hit(tm_blast_domain, ix, I)
     ET.SubElement(tm, 'tm_hh_domain')
     tm_hh_domain = tm.find('tm_hh_domain')
     for ix, I in enumerate(Info['hh_domain']):
+        if I is None:
+            continue
         add_xml_hit(tm_hh_domain, ix, I)
     indent(root)
     xml.write(str(new))
 
 
-# if __name__ == "__main__":
-args = ['-i', './test_data/5mo0_A.develop205.blast_summ.xml',
-        '-w', '.']
+#if __name__ == "__main__":
+args = ['-i', 
+        '/home/saveliy/Projects/TMBoundary/6efn_A.develop239.blast_summ.xml',
+        ]
 options_parser = OptionParser()
 options_parser.add_option("-i", "--input", dest="input_xml_filepath", type='str',
                           help="input blast_summ.xml FILE", metavar="FILE",
                           action='callback', callback=_check_inputFile)
 options_parser.add_option("-w", "--work_dir", dest="work_dir", type='str',
-                          help="DIR where structure files will be stored $DIR/TMfiles", metavar="DIR",
+                          help="DIR where structure files will be stored $DIR/TMfiles", 
+                          metavar="DIR",
                           action='callback', callback=_check_inputDir, default=None)
 (options, args) = options_parser.parse_args(args)
 if options.input_xml_filepath is None:
@@ -275,25 +282,23 @@ quary_parser = PDBParser(query_structure)
 
 Info = {}
 # Process blast_chain
-Info['blast_chain'] = []
+# Info['blast_chain'] = []
 # for hit in XML_Info.chain_blast['hits'][-10:]:
 #     Info['blast_chain'].append(
 #         _process_chain_blast(hit, str_dir, query_structure))
 
 Info['blast_domain'] = []
-# for hit in XML_Info.domain_blast['hits'][34:36]:
-#   Info['blast_domain'].append(
-#       _process_domain(hit, str_dir, query_structure))
+for ix, hit in enumerate(XML_Info.domain_blast['hits']):
+    Info['blast_domain'].append(
+        _process_domain(hit, str_dir, query_structure))
 
 Info['hh_domain'] = []
-for hit in XML_Info.hh_run['hits'][-4:-2]:
+for hit in XML_Info.hh_run['hits']:
     Info['hh_domain'].append(
         _process_domain(hit, str_dir, query_structure))
 
-
 out_file = _set_output_files(options.input_xml_filepath)
 create_XML(options.input_xml_filepath, out_file, Info)
-
 
 # _process_range(range_test_1)
 
